@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -90,7 +91,11 @@ func main() {
 	r.HandleFunc("/session/", createSession)
 	r.HandleFunc("/session/{sessionID}/start", startSession)
 	r.HandleFunc("/session/{sessionID}/connect", connectToSession)
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	port, exists := os.LookupEnv("PORT")
+	if !exists {
+		port = "80"
+	}
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		panic(err)
 	}
 }

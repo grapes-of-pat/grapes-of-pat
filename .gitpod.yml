@@ -1,0 +1,12 @@
+ports:
+  - port: 3000
+checkoutLocation: "go/src/github.com/grapes-of-pat/grapes-of-pat"
+workspaceLocation: "."
+tasks:
+  - init: >
+      cd /workspace/go/src/github.com/grapes-of-pat/grapes-of-pat &&
+      go get -v ./... &&
+      go get github.com/codegangsta/gin
+    command: >
+      cd /workspace/go/src/github.com/grapes-of-pat/grapes-of-pat &&
+      gin run server.go
