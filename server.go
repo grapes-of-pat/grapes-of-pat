@@ -69,11 +69,14 @@ func connectToSession(w http.ResponseWriter, r *http.Request) {
 			for {
 				msg, op, err := wsutil.ReadClientData(readConn)
 				if err != nil {
-					// handle error
+					fmt.Println(err)
+					return
 				}
+				fmt.Println("Writing : "+string(msg), len(msg))
 				err = wsutil.WriteServerMessage(writeConn, op, msg)
 				if err != nil {
-					// handle error
+					fmt.Println(err)
+					return
 				}
 			}
 		}()
@@ -87,6 +90,8 @@ func main() {
 	// TODO Just make a single file?
 	r.Handle("/", http.FileServer(http.Dir("./static/home")))
 	r.PathPrefix("/controller/").Handler(http.FileServer(http.Dir("./static")))
+	r.PathPrefix("/library/").Handler(http.FileServer(http.Dir("./static")))
+	r.PathPrefix("/examples/").Handler(http.FileServer(http.Dir("./static")))
 	// TODO Fix the semantics of this at some stage(make post?)
 	r.HandleFunc("/session/", createSession)
 	r.HandleFunc("/session/{sessionID}/start", startSession)

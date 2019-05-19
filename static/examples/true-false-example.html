@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+    <script src="/library/grapes-of-pat.js"></script>
+    <script>
+        var grapes = window.grapesOfPat;
+        grapes.createServer({
+                clientIds: ["Player_1", "Player_2"],
+                onmessage: function(msg) {
+                    document.body.appendChild(document.createTextNode(JSON.stringify(msg)));
+                }
+            })
+            .then(function(connectionDetails) {
+                connectionDetails.urls.forEach(function(url) {
+                    document.body.appendChild(document.createTextNode(url));
+                    document.body.appendChild(document.createElement("br"));
+                });
+            });
+    </script>
+</head>
+
+<body>
+    
+</body>

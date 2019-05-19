@@ -1,8 +1,27 @@
 <!DOCTYPE html>
 <head>
-
+    <script src="/library/grapes-of-pat.js"></script>
 </head>
 
 <body>
-    Basic Boolean Controller
+    <button id="button-yes">yes</button>
+    <button id="button-no">no</button>
+    <script>
+        var grapes = window.grapesOfPat;
+        grapes.connect().then(function(sender) {
+            setButtonFunction("button-yes", function() {
+                sender.send({ 'command': true });
+            });
+
+            setButtonFunction("button-no", function() {
+                sender.send({ 'command': false });
+            });
+
+            function setButtonFunction(id, fn) {
+                var button = document.getElementById(id);
+                button.onclick = fn;
+            }
+
+        });
+    </script>
 </body>
