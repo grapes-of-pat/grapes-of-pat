@@ -1,27 +1,70 @@
 <!DOCTYPE html>
 <head>
     <script src="/library/grapes-of-pat.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            background-color: red;
+            margin: 0;
+            display: flex;
+        }
+
+        button {
+            flex: 1;
+            border: 0;
+            font-size: 25vw;
+        }
+
+        button:active {
+            color: #FFDC00;
+        }
+
+        #button-yes {
+            background-color: #2ECC40;
+        }
+
+        #button-no {
+            background-color: #FF4136;
+        }
+    </style>
 </head>
 
 <body>
-    <button id="button-yes">yes</button>
-    <button id="button-no">no</button>
+
+    <button id="button-yes">Yes</button>
+    <button id="button-no">No</button>
+
     <script>
         var grapes = window.grapesOfPat;
         grapes.connect().then(function(sender) {
-            setButtonFunction("button-yes", function() {
-                sender.send({ 'command': true });
-            });
+            setButtonCommandValue("button-yes", true);
+            setButtonCommandValue("button-no", false);
 
-            setButtonFunction("button-no", function() {
-                sender.send({ 'command': false });
-            });
-
-            function setButtonFunction(id, fn) {
+            function setButtonCommandValue(id, commandValue) {
                 var button = document.getElementById(id);
-                button.onclick = fn;
+                button.onclick = function() {
+                    openFullscreen();
+                    sender.send({ 'command': commandValue });
+                };
             }
-
         });
+
+        var elem = document.documentElement;
+
+        /* View in fullscreen */
+        function openFullscreen() {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { /* Firefox */
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                elem.msRequestFullscreen();
+            }
+        }
+        openFullscreen();
     </script>
 </body>

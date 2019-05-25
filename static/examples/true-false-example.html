@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+    <script src="lib/qrcode.min.js"></script>
     <script src="/library/grapes-of-pat.js"></script>
     <script>
         var grapes = window.grapesOfPat;
@@ -10,14 +11,37 @@
                 }
             })
             .then(function(connectionDetails) {
-                connectionDetails.urls.forEach(function(url) {
-                    document.body.appendChild(document.createTextNode(url));
-                    document.body.appendChild(document.createElement("br"));
-                });
+                createQrCode("player1-url", connectionDetails.urls[0]);
+                createQrCode("player2-url", connectionDetails.urls[1]);
             });
+
+        function createQrCode(domId, url) {
+            new QRCode(document.getElementById(domId), url);
+        }
     </script>
+
+    <style>
+        #connection-details {
+            display: flex;
+            justify-content: space-around;
+        }
+    </style>
 </head>
 
 <body>
-    
+
+    <div id="connection-details">
+        <div id="player1-url">
+
+        </div>
+
+        <div id="player2-url">
+
+        </div>
+    </div>
+
+    <div id="update-details">
+
+    </div>
+
 </body>
