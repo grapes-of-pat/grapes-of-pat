@@ -87,8 +87,6 @@ func connectToSession(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	// TODO Just make a single file?
-	r.Handle("/", http.FileServer(http.Dir("./static/home")))
 	r.PathPrefix("/controller/").Handler(http.FileServer(http.Dir("./static")))
 	r.PathPrefix("/library/").Handler(http.FileServer(http.Dir("./static")))
 	r.PathPrefix("/examples/").Handler(http.FileServer(http.Dir("./static")))
@@ -96,6 +94,8 @@ func main() {
 	r.HandleFunc("/session/", createSession)
 	r.HandleFunc("/session/{sessionID}/start", startSession)
 	r.HandleFunc("/session/{sessionID}/connect", connectToSession)
+	// default
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/home")))
 	port, exists := os.LookupEnv("PORT")
 	if !exists {
 		port = "80"
