@@ -11,6 +11,26 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<style>
+			.demo {
+				display: flex;
+			}
+			.qr {
+				float: left;
+				/* flex: 1; */
+			}
+			.command-output {
+				flex: 1;
+				margin-left: 22px; /* FIXME */
+				white-space: nowrap;
+			}
+
+			.features section {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+			}
+		</style>
 	</head>
 	<body class="is-preload">
 
@@ -90,7 +110,11 @@ grapes.createServer({
 										<span class="icon major fa-gamepad"></span>
 										<h3>boolean-controller</h3>
 										<p>This is a simple controller that only allows the user to send true or false.</p>
-										<a href="/controller/boolean-controller.html"  class="button">Launch</a>
+										<div class="demo">
+											<div class="qr"></div>
+											<textarea class="command-output"></textarea>
+										</div>
+										<!-- <a href="/controller/boolean-controller.html"  class="button">Launch</a> -->
 									</section>
 									<section>
 										<span class="icon major fa-gamepad"></span>
@@ -99,14 +123,22 @@ grapes.createServer({
 											A controller where the left half of the phone screen sends directional commands. The right half sends an 'a' or
 											'b' action.
 										</p>
+										<div class="demo">
+											<div class="qr"></div>
+											<textarea class="command-output"></textarea>
+										</div>
 									</section>
 									<section>
-											<span class="icon major fa-gamepad"></span>
-											<h3>gyroscope-controller</h3>
-											<p>
-												A controller that uses the gyroscope on the phone to send x, y and z values.
-											</p>
-										</section>
+										<span class="icon major fa-gamepad"></span>
+										<h3>gyroscope-controller</h3>
+										<p>
+											A controller that uses the gyroscope on the phone to send x, y and z values.
+										</p>
+										<div class="demo">
+											<div class="qr"></div>
+											<textarea class="command-output"></textarea>
+										</div>
+									</section>
 								</div>
 							</div>
 						</section>
@@ -171,6 +203,55 @@ grapes.createServer({
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+
+		<!-- Live Demo Scripts-->
+		<script src="/library/grapes-of-pat.js"></script>
+		<script src="/examples/lib/qrcode.min.js"></script>
+		<script>
+			var $controllerSections = $("#section-controllers .features section");
+			var demos = $.map($controllerSections, function(section) {
+				var $section = $(section);
+				var controllerName = $section.find("h3").text();
+				return {
+					controllerName: controllerName,
+					$div: $section.find(".demo")
+				}
+			});
+
+			var demoMap = demos.reduce(function(hash, demo) {
+				hash[demo.controllerName] = demo;
+				return hash;
+			}, {});
+
+			var grapes = window.grapesOfPat;
+			grapes.createServer({
+					clientIds: demos.map(function(d) { return d.controllerName }),
+					controller: "REPLACE_ME",
+					onmessage: function(msg) {
+						console.log(msg);
+						var output = msg.command !== undefined ? JSON.stringify(msg.command, null, 2)
+							: msg.type;
+						var $demoDiv = demoMap[msg.clientId].$div;
+						$demoDiv.find(".command-output").html(output);						
+					}
+				})
+				.then(function(connectionDetails) {
+					var urls = connectionDetails.urls;
+					for (var i = 0; i < urls.length; i++) {
+						var demo = demos[i];
+						var url = urls[i].replace("REPLACE_ME", demo.controllerName);
+						new QRCode(demo.$div.find(".qr")[0], {
+							text: url,
+							width: 128,
+							height: 128
+						});
+					}
+					
+				});
+
+			
+
+		</script>
 
 	</body>
 </html>
