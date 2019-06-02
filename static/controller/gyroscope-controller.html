@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<head>
+    <script src="/library/grapes-of-pat.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            color: #ff851b;
+            background-color: #111;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15vmin;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    (<span id="alpha">-</span>,&nbsp;<span id="beta">-</span>,&nbsp;<span id="gamma">-</span>)
+
+    <script>
+
+        var grapes = window.grapesOfPat;
+        grapes.connect().then(function(sender) {
+
+            window.addEventListener('deviceorientation', function(event) {
+                update(event.alpha, event.beta, event.gamma);
+            });
+
+
+            function update(alpha, beta, gamma) {
+                setElementValues(alpha, beta ,gamma);
+                send(alpha, beta, gamma);
+            }
+
+            function setElementValues(alpha, beta, gamma) {
+                document.getElementById("alpha").innerHTML = alpha.toFixed(2);
+                document.getElementById("beta").innerHTML = beta.toFixed(2);
+                document.getElementById("gamma").innerHTML = gamma.toFixed(2);
+            }
+
+            function send(alpha, beta, gamma) {
+                sender.send({
+                    command: {
+                        alpha: alpha,
+                        beta: beta,
+                        gamma: gamma
+                    }
+                });
+            }
+
+        });
+    </script>
+</body>
