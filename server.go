@@ -18,6 +18,7 @@ type session struct {
 	id             string
 	lastUpdateTime time.Time
 	conn           net.Conn
+	clients        cmap.ConcurrentMap
 }
 
 // TODO Some sort of reaper process that cleans up old sessions
@@ -28,8 +29,10 @@ var id = 1
 
 func createSession(w http.ResponseWriter, r *http.Request) {
 	sessionID := fmt.Sprintf("%s%d", "id-", id)
-	newSession := session{id: sessionID, lastUpdateTime: time.Now()}
-	fmt.Println(newSession)
+	newSession := session{
+		id:             sessionID,
+		lastUpdateTime: time.Now(),
+		clients:        cmap.New()}
 	sessionMap.Set(sessionID, &newSession)
 	id = id + 1
 	w.Write([]byte(sessionID))
@@ -47,6 +50,37 @@ func startSession(w http.ResponseWriter, r *http.Request) {
 		newSession.conn = conn
 		newSession.lastUpdateTime = time.Now()
 		fmt.Println(newSession)
+		// Write to clients
+		/*
+		 * FIXME This whole goroutine is a bit flaky.
+		 * It will sometimes error out when reading the client data.
+		 * with an EOF
+		 */
+		go func() {
+			// defer conn.Close()
+
+			for {
+				msg, op, err := wsutil.ReadClientData(conn)
+				if err != nil {
+					fmt.Println("Error reading connection from host")
+					fmt.Println(err)
+					return
+				}
+				// For now the msg is  clientID
+				clientID := string(msg[:])
+				if tmp2, ok2 := newSession.clients.Get(clientID); ok2 {
+					clientConn := tmp2.(net.Conn)
+					err = wsutil.WriteServerMessage(clientConn, op, msg)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				} else {
+					fmt.Println("Error: Could not find client with id: " + clientID)
+					// Error handling. Could no find client id
+				}
+			}
+		}()
 	} else {
 		// Some error handling?
 	}
@@ -55,14 +89,18 @@ func startSession(w http.ResponseWriter, r *http.Request) {
 func connectToSession(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	sessionID := vars["sessionID"]
+	clientID := vars["clientID"]
 	if tmp, ok := sessionMap.Get(sessionID); ok {
 		newSession := tmp.(*session)
-		fmt.Println(newSession)
 		readConn, _, _, err := ws.UpgradeHTTP(r, w)
 		if err != nil {
 			// handle error
+			fmt.Println("Error connecting to session")
+			fmt.Println(err)
 		}
 		writeConn := newSession.conn
+		newSession.clients.Set(clientID, readConn)
+		fmt.Println("Client connected: " + clientID)
 		go func() {
 			defer readConn.Close()
 
@@ -72,7 +110,6 @@ func connectToSession(w http.ResponseWriter, r *http.Request) {
 					fmt.Println(err)
 					return
 				}
-				fmt.Println("Writing : "+string(msg), len(msg))
 				err = wsutil.WriteServerMessage(writeConn, op, msg)
 				if err != nil {
 					fmt.Println(err)
@@ -93,7 +130,7 @@ func main() {
 	// TODO Fix the semantics of this at some stage(make post?)
 	r.HandleFunc("/session/", createSession)
 	r.HandleFunc("/session/{sessionID}/start", startSession)
-	r.HandleFunc("/session/{sessionID}/connect", connectToSession)
+	r.HandleFunc("/session/{sessionID}/connect", connectToSession).Queries("clientID", "{clientID}")
 	// default
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/home")))
 	port, exists := os.LookupEnv("PORT")

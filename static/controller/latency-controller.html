@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<head>
+    <script src="/library/grapes-of-pat.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            color: #ff851b;
+            background-color: #111;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25vmin;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <span id="latency">-</span>ms
+
+    <script>
+        /*
+         * FIXME This is very basic.
+         */
+        var grapes = window.grapesOfPat;
+        var pingSender;
+        var start;
+
+        function startPing() {
+            start = Date.now();
+            pingSender.send({ type: "ping" });
+        }
+
+        function endPing() {
+            var end = Date.now();
+            var latency = end -start;
+            document.getElementById("latency").innerHTML = latency;
+            window.setTimeout(startPing, 1000);
+        }
+
+        grapes.connect({ onmessage: endPing }).then(function(sender) {
+            pingSender = sender;
+            startPing();
+        });
+    </script>
+</body>

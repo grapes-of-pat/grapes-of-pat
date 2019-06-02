@@ -1,6 +1,7 @@
 (function(global) {
 
-    var host = window.location.host;
+    var serverHost = global.GRAPES_HOST || "grapesofpat.com";
+    var clientHost = window.location.host;
 
     global.grapesOfPat = {
         createServer: createServer,
@@ -18,18 +19,25 @@
         var controller = options.controller || 'boolean-controller';
         var protocol = window.location.protocol;
         var wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
-        var controllerUrl = protocol + '//' + host + '/controller/' + controller + '.html';
+        var controllerUrl = protocol + '//' + serverHost + '/controller/' + controller + '.html';
 
-        return fetch('//' + host + '/session/')
+        return fetch('//' + serverHost + '/session/')
             .then(function(response) {
                 return response.text();
             })
             .then(function(sessionId) {
                 // FIXME wss
-                var socketUrl = wsProtocol +'//' + host + '/session/' + sessionId + '/start';
+                var socketUrl = wsProtocol +'//' + serverHost + '/session/' + sessionId + '/start';
                 var socket = new WebSocket(socketUrl);
                 socket.onmessage = function(msg) {
-                    options.onmessage(JSON.parse(msg.data));
+                    var data = JSON.parse(msg.data);
+                    if (data.type === "ping") {
+                        console.log("Returning ping to " + data.clientId);
+                        // Just send client id as text;
+                        // TODO Allow the sending of more complex data
+                        socket.send(data.clientId);
+                    }
+                    options.onmessage(data);
                 };
                 return {
                     urls: clientIds.map(function(id) {
@@ -53,7 +61,8 @@
         var clientId = hash.clientId;
         var protocol = window.location.protocol;
         var wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
-        var socketUrl = wsProtocol + '//' + host + '/session/'  + sessionId + '/connect';
+        var socketUrl = wsProtocol + '//' + clientHost + '/session/'  + sessionId
+            + '/connect?clientID=' + clientId ;
         var socket = new WebSocket(socketUrl);
 
         return new Promise(function(resolve, reject) {
@@ -63,6 +72,9 @@
                     send: send
                 });
             };
+            if (options && options.onmessage) {
+                socket.onmessage = options.onmessage;
+            }
             function send(msg) {
                 msg.clientId = clientId;
                 socket.send(JSON.stringify(msg));
