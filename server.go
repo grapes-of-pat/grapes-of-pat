@@ -14,20 +14,13 @@ import (
 	cmap "github.com/orcaman/concurrent-map" // Also has some simple tests
 )
 
-type session struct {
-	id             string
-	lastUpdateTime time.Time
-	conn           net.Conn
-	clients        cmap.ConcurrentMap
-}
-
 // TODO Some sort of reaper process that cleans up old sessions
 var sessionMap = cmap.New()
 
 // TODO Some better id generation
 var id = 1
 
-func createSession(w http.ResponseWriter, r *http.Request) {
+func createNewSession(w http.ResponseWriter, r *http.Request) {
 	sessionID := fmt.Sprintf("%s%d", "id-", id)
 	newSession := session{
 		id:             sessionID,
@@ -128,7 +121,7 @@ func main() {
 	r.PathPrefix("/library/").Handler(http.FileServer(http.Dir("./static")))
 	r.PathPrefix("/examples/").Handler(http.FileServer(http.Dir("./static")))
 	// TODO Fix the semantics of this at some stage(make post?)
-	r.HandleFunc("/session/", createSession)
+	r.HandleFunc("/session/", createNewSession)
 	r.HandleFunc("/session/{sessionID}/start", startSession)
 	r.HandleFunc("/session/{sessionID}/connect", connectToSession).Queries("clientID", "{clientID}")
 	// default
