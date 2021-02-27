@@ -1,27 +1,17 @@
 package main
+
 import (
-	"fmt"
 	"github.com/dchest/uniuri"
+	// "github.com/patrickmn/go-cache"
 )
 
 
-type session struct {
-	id             string
-	lastUpdateTime time.Time
-	conn           net.Conn
-	clients        cmap.ConcurrentMap
-}
-
-func createSession() session {
-	return randomString();
+func createSession() string {
+	return randomString(4)
 }
 
 func getSession(id string) {
 
-}
-
-func main() { 
-	fmt.Println(randomString((4)))
 }
 
 func randomString(len int) string {

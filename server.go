@@ -14,6 +14,13 @@ import (
 	cmap "github.com/orcaman/concurrent-map" // Also has some simple tests
 )
 
+type session struct {
+	id             string
+	lastUpdateTime time.Time
+	conn           net.Conn
+	clients        cmap.ConcurrentMap
+}
+
 // TODO Some sort of reaper process that cleans up old sessions
 var sessionMap = cmap.New()
 

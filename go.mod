@@ -9,5 +9,6 @@ require (
 	github.com/gobwas/ws v1.0.4 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/orcaman/concurrent-map v0.0.0-20210106121528-16402b402231 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	golang.org/x/sys v0.0.0-20210227040730-b0d1d43c014d // indirect
 )
